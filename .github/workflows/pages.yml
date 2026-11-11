@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copy the contents of qa/ to the root of the standalone Pages repository.
+name: Deploy QA preview to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check source data and JavaScript
+        run: |
+          PYTHONDONTWRITEBYTECODE=1 python3 tools/check_real.py
+          for source in ./*.js; do
+            node --input-type=module --check < "$source"
+          done
+      - uses: actions/configure-pages@v5
+      - name: Assemble static site
+        run: |
+          mkdir _site
+          cp index.html styles.css ./*.js _site/
+          cp -R assets data _site/
+          touch _site/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

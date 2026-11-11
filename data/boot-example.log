@@ -1,0 +1,6 @@
+DEMO ONLY — fictional boot log, not a real Asterinas execution.
+[host] final checkout: 14a8d512287f38f1cc28748adb2c8f603fcdcb4a
+[host] RELEASE=1 SMP=1 ENABLE_KVM=1
+[smoke.compile] exit=0
+[guest] boot_hello: success
+[host] exit=0 result_complete=true
